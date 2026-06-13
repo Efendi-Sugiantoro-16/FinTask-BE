@@ -47,3 +47,12 @@ export const refreshTokenSchema = z.object({
   refreshToken: z.string({ required_error: 'Refresh token wajib diisi.' }),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: z.string({ required_error: 'Email wajib diisi.' }).email('Format email tidak valid.'),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string({ required_error: 'Token wajib diisi.' }),
+  newPassword: z.string().min(6, 'Password baru minimal 6 karakter.').max(100),
+});
+

@@ -100,6 +100,39 @@ const gamificationService = {
   },
 
   /**
+   * Award XP to a user and handle level up logic
+   */
+  async awardXP(userId, amount, source, sourceId = null, description = "") {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new Error('User not found');
+
+    const newTotalXP = user.totalXP + amount;
+    const { level } = this.calculateLevel(newTotalXP);
+
+    // 1. Update User XP & Level
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        totalXP: { increment: amount },
+        level: level,
+      },
+    });
+
+    // 2. Record to XP History
+    await prisma.xphistory.create({
+      data: {
+        userId,
+        amount,
+        source,
+        sourceId,
+        description,
+      },
+    });
+
+    return updatedUser;
+  },
+
+  /**
    * Logic to check and award badges based on triggers
    */
   async checkAndAwardBadges(userId, triggerType) {

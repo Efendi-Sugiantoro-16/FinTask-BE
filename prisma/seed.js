@@ -125,6 +125,50 @@ async function main() {
     console.log('  ⏭️  User test@fintask.com sudah ada');
   }
 
+  // --- Seed Admin User ---
+  const adminEmail = 'admin@fintask.com';
+  const existingAdmin = await prisma.user.findUnique({ where: { email: adminEmail } });
+  if (!existingAdmin) {
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash('admin123', salt);
+    await prisma.user.create({
+      data: {
+        email: adminEmail,
+        username: 'admin',
+        passwordHash,
+        fullName: 'Administrator',
+        role: 'ADMIN',
+        level: 99,
+        totalXP: 9999,
+      },
+    });
+    console.log('  ✅ Admin: admin@fintask.com created (password: admin123)');
+  } else {
+    console.log('  ⏭️  Admin admin@fintask.com sudah ada');
+  }
+
+  // --- Seed Super Admin User ---
+  const superAdminEmail = 'superadmin@fintask.com';
+  const existingSuperAdmin = await prisma.user.findUnique({ where: { email: superAdminEmail } });
+  if (!existingSuperAdmin) {
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash('superadmin123', salt);
+    await prisma.user.create({
+      data: {
+        email: superAdminEmail,
+        username: 'superadmin',
+        passwordHash,
+        fullName: 'Super Administrator',
+        role: 'SUPERADMIN',
+        level: 999,
+        totalXP: 99999,
+      },
+    });
+    console.log('  ✅ Super Admin: superadmin@fintask.com created (password: superadmin123)');
+  } else {
+    console.log('  ⏭️  Super Admin superadmin@fintask.com sudah ada');
+  }
+
   // --- Seed Badges ---
   for (const badge of badges) {
     const existing = await prisma.badge.findUnique({

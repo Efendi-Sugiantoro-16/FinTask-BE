@@ -168,6 +168,31 @@ const authController = {
     // Stateless JWT — client harus hapus token sendiri
     return sendSuccess(res, 200, MESSAGES.LOGOUT_SUCCESS);
   },
+
+  /**
+   * POST /api/auth/forgot-password
+   */
+  async forgotPassword(req, res, next) {
+    try {
+      const result = await authService.forgotPassword(req.body.email);
+      return sendSuccess(res, 200, result.message);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * POST /api/auth/reset-password
+   */
+  async resetPassword(req, res, next) {
+    try {
+      const { token, newPassword } = req.body;
+      const result = await authService.resetPassword(token, newPassword);
+      return sendSuccess(res, 200, result.message);
+    } catch (error) {
+      next(error);
+    }
+  },
 };
 
 export default authController;

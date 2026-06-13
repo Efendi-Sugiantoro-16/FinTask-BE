@@ -37,6 +37,10 @@ const adminController = {
    */
   async updateUserRole(req, res, next) {
     try {
+      if (req.user.role !== 'SUPERADMIN') {
+        return res.status(403).json({ success: false, message: 'Akses ditolak. Hanya Super Admin yang dapat mengubah role.' });
+      }
+
       const { id } = req.params;
       const { role } = req.body;
       const user = await adminService.updateRole(id, role);

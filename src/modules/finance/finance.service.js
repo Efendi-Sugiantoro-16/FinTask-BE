@@ -1,6 +1,7 @@
 import prisma from '../../config/prisma.js';
 import { startOfMonth, endOfMonth } from 'date-fns';
 import { parseDate, isValidDate } from '../../shared/utils/date.util.js';
+import gamificationService from '../gamification/gamification.service.js';
 
 /**
  * Finance Service — Logic for tracking income, expenses, and summaries
@@ -20,7 +21,7 @@ const financeService = {
     const parsedDate = parseDate(transactionDate) || new Date();
     if (!isValidDate(parsedDate)) throw new Error('Format tanggal transaksi tidak valid');
 
-    return await prisma.transaction.create({
+    const transaction = await prisma.transaction.create({
       data: {
         userId,
         amount: parseFloat(amount),
@@ -32,6 +33,17 @@ const financeService = {
         transactionDate: parsedDate,
       },
     });
+
+    // Award XP for financial discipline!
+    await gamificationService.awardXP(
+      userId, 
+      10, 
+      'finance_transaction', 
+      transaction.id, 
+      `Mencatat transaksi: ${category}`
+    );
+
+    return transaction;
   },
 
   /**

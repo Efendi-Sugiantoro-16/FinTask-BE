@@ -6,6 +6,8 @@ import gamificationService from '../gamification/gamification.service.js';
 import { v4 as uuidv4 } from 'uuid';
 import QRCode from 'qrcode';
 import prisma from '../../config/prisma.js';
+import crypto from 'crypto';
+import { sendResetPasswordEmail } from '../../shared/helpers/email.helper.js';
 
 /**
  * Auth Service — Business logic for authentication
@@ -341,6 +343,64 @@ const authService = {
       token: accessToken,
       refreshToken,
     };
+  },
+
+  /**
+   * FORGOT PASSWORD — Generate reset token and send email
+   */
+  async forgotPassword(email) {
+    const user = await authRepository.findByEmail(email);
+    if (!user) {
+      throw Object.assign(new Error('Email tidak terdaftar.'), { statusCode: 404 });
+    }
+
+    // Generate token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 menit
+
+    // Simpan ke DB
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetPasswordToken: resetToken,
+        resetPasswordExpires,
+      },
+    });
+
+    // Kirim email (Simulasi Console)
+    await sendResetPasswordEmail(user.email, resetToken);
+
+    return { success: true, message: 'Link reset password telah dikirim ke email.' };
+  },
+
+  /**
+   * RESET PASSWORD — Verify token and update password
+   */
+  async resetPassword(token, newPassword) {
+    const user = await prisma.user.findUnique({
+      where: {
+        resetPasswordToken: token,
+      },
+    });
+
+    if (!user || !user.resetPasswordExpires || new Date() > user.resetPasswordExpires) {
+      throw Object.assign(new Error('Token tidak valid atau sudah kadaluarsa.'), { statusCode: 400 });
+    }
+
+    // Hash password baru
+    const passwordHash = await hashPassword(newPassword);
+
+    // Update user & hapus token
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash,
+        resetPasswordToken: null,
+        resetPasswordExpires: null,
+      },
+    });
+
+    return { success: true, message: 'Password berhasil direset. Silakan login.' };
   },
 };
 

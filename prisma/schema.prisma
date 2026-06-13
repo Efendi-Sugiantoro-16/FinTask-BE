@@ -134,6 +134,8 @@ model user {
   companyName     String?
   companyAddress  String?           @db.Text
   companyLogoUrl  String?
+  resetPasswordToken String?        @unique(map: "User_resetPasswordToken_key")
+  resetPasswordExpires DateTime?
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
   calendarevent   calendarevent[]

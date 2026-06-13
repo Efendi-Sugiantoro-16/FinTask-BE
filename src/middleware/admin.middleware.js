@@ -1,7 +1,7 @@
 import { sendError } from '../shared/helpers/response.helper.js';
 
 /**
- * Middleware: Verifikasi role ADMIN
+ * Middleware: Verifikasi role ADMIN atau SUPERADMIN
  * Harus dipasang SEBELAH authenticate middleware
  */
 export const authorizeAdmin = (req, res, next) => {
@@ -9,7 +9,7 @@ export const authorizeAdmin = (req, res, next) => {
     return sendError(res, 401, 'Autentikasi diperlukan.');
   }
 
-  if (req.user.role !== 'ADMIN') {
+  if (req.user.role !== 'ADMIN' && req.user.role !== 'SUPERADMIN') {
     return sendError(res, 403, 'Akses ditolak. Fitur ini hanya untuk Admin.');
   }
 
